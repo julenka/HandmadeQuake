@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <windows.h>
 
+#include "host.h"
+
 static BOOL IsRunning = TRUE;
 
 //////////////////////////////
@@ -98,7 +100,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     mainwindow = CreateWindowEx(
         0,
         "Module 2",
-        "Lesson 2.4",
+        "Lesson 2.5",
         WindowStyle,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
@@ -115,8 +117,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     PatBlt(DeviceContext, 0, 0, 800, 600, BLACKNESS);
     ReleaseDC(mainwindow, DeviceContext);
 
+    Host_Init();
     
-    float timecount = Sys_InitFloatTime();
+    float oldtime = Sys_InitFloatTime();
+    float TargetTime = 1.0f / 60.0f;
+    float TimeAccumulated = 0;
 
     MSG msg;
     while (IsRunning)
@@ -130,14 +135,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     
 
         float newtime = Sys_FloatTime();
+        TimeAccumulated += newtime - oldtime;
+        oldtime = newtime;
 
-
-        char buf[64];
-        sprintf_s(buf, 64, "Total time: %3.7f \n", newtime);
-        OutputDebugString(buf);
-
-        Sleep(1);
+        if (TimeAccumulated > TargetTime)
+        {
+            Host_Frame(TargetTime);
+            TimeAccumulated -= TargetTime;
+        }
     }
+
+    Host_Shutdown();
 
     return 0;
 }
