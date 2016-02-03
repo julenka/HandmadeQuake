@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdio.h>
 #include <stdint.h>
 
 typedef uint8_t uint8;
@@ -9,3 +10,4 @@ typedef uint32_t uint32;
 
 #include "common.h"
 #include "q_stl.h"
+#include "host.h"
