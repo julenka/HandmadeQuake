@@ -4,6 +4,8 @@ double realtime = 0;
 double oldrealtime = 0;
 double host_frametime = 0;
 
+extern void* BackBuffer;
+
 qboolean Host_FilterTime(float time)
 {
     realtime += time;
@@ -19,7 +21,7 @@ qboolean Host_FilterTime(float time)
 
 void Host_Init(void)
 {
-
+    VID_Init();
 }
 
 void Host_Frame(float timestep)
@@ -27,11 +29,14 @@ void Host_Frame(float timestep)
     if (!Host_FilterTime(timestep))
         return;
 
+    Sys_SendKeyEvents();
+
+    VID_Update();
     // update game
     // render scene
 }
 
 void Host_Shutdown(void)
 {
-
+    VID_Shutdown();
 }

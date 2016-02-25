@@ -20,28 +20,6 @@ typedef struct dibinfo_s
 
 dibinfo_t BitMapInfo = { 0 };
 
-void DrawPic8(int X, int Y, int Width, int Height, 
-    unsigned char* Source, unsigned char* Dest)
-{
-    // move to first pixel
-    Dest += (BufferWidth * BytesPerPixel * Y) + (X*BytesPerPixel);
-
-    unsigned char* BufferWalker = Dest;
-
-    for (int HeightWalker = 0; HeightWalker < Height; HeightWalker++)
-    {
-        for (int WidthWalker = 0; WidthWalker < Width; WidthWalker++)
-        {
-            *BufferWalker = *Source;
-            BufferWalker++;
-            Source++;
-        }
-
-        Dest += BufferWidth * BytesPerPixel;
-        BufferWalker = Dest;
-    }
-}
-
 void DrawPic32(int X, int Y, int Width, int Height,
     unsigned char* Source, unsigned char* Dest)
 {
@@ -63,42 +41,6 @@ void DrawPic32(int X, int Y, int Width, int Height,
 
         Dest += BufferWidth * BytesPerPixel;
         BufferWalker = (unsigned int*)Dest;
-    }
-
-}
-
-void DrawRect8(int X, int Y, int Width, int Height, unsigned char Color, unsigned char* Buffer)
-{
-    if (X < 0)
-        X = 0;
-
-    if (Y < 0)
-        Y = 0;
-
-    if ((X + Width) > BufferWidth)
-    {
-        Width = BufferWidth - X;
-    }
-
-    if ((Y + Height) > BufferHeight)
-    {
-        Height = BufferHeight - Y;
-    }
-
-    // move to first pixel
-    Buffer += (BufferWidth * BytesPerPixel * Y) + (X*BytesPerPixel);
-
-    unsigned char* BufferWalker = Buffer;
-    for (int HeightWalker = 0; HeightWalker < Height; HeightWalker++)
-    {
-        for (int WidthWalker = 0; WidthWalker < Width; WidthWalker++)
-        {
-            *BufferWalker = Color;
-            BufferWalker++;
-        }
-
-        Buffer += BufferWidth * BytesPerPixel;
-        BufferWalker = Buffer;
     }
 
 }
@@ -208,7 +150,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     // create our window
     HWND MainWindow = CreateWindowEx(
         dwExStyle, "Module 3",
-        "Lesson 3.4", dwStyle,
+        "Lesson 3.5", dwStyle,
         CW_USEDEFAULT, CW_USEDEFAULT,
         r.right - r.left, r.bottom - r.top,
         NULL, NULL,
@@ -231,7 +173,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     //if (BytesPerPixel == 1)
     {
-        FILE *Palette = fopen("palette.lmp", "r");
+        FILE *Palette = fopen("palette.lmp", "rb");
         void *RawData = malloc(256 * 3);
         unsigned char* PaletteData = RawData;
         size_t Ret = fread(PaletteData, 1, 768, Palette);
@@ -247,7 +189,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         fclose(Palette);
     }
 
-    FILE * Disc = fopen("DISC.lmp", "r");
+    FILE * Disc = fopen("DISC.lmp", "rb");
     int DiscWidth, DiscHeight;
 
     size_t RetVal = fread(&DiscWidth, 1, 4, Disc);
@@ -257,7 +199,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     fclose(Disc);
 
-    FILE *Pause = fopen("pause.lmp", "r");
+    FILE *Pause = fopen("pause.lmp", "rb");
     int PauseWidth, PauseHeight;
 
     RetVal = fread(&PauseWidth, 1, 4, Pause);
@@ -315,7 +257,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             0, 0, BufferWidth, BufferHeight,
             BackBuffer, (BITMAPINFO*)&BitMapInfo,
             DIB_RGB_COLORS, SRCCOPY);
-        DeleteDC(dc);
+        ReleaseDC(MainWindow, dc);
     }
 
     free(BackBuffer);
