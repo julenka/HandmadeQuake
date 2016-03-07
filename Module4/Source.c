@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
-
+#include "file.h"
 
 char* va(char* format, ...)
 {
@@ -19,29 +20,34 @@ char* va(char* format, ...)
 
 int main()
 {
-    //char* res = va("%d", 10);
+    int Size;
+    int FileHandle = Sys_FileOpenRead("Source.c", &Size);
 
-    FILE* f;
-    fopen_s(&f, "Source.c", "rb");
+    if (FileHandle == -1)
+    {
+        int a = 5; a;
+    }
+
+    void *Buffer = malloc(Size);
+
+    Sys_FileRead(FileHandle, Buffer, Size);
+
+    int WriteFile = Sys_FileOpenWrite("Source.out");
+
+    if (WriteFile == -1)
+    {
+        int a = 5; a;
+    }
     
-    int		pos;
-    int		end;
-    
-    pos = ftell(f);
-    fseek(f, 0, SEEK_END);
+    Sys_FileWrite(WriteFile, Buffer, Size);
 
-    end = ftell(f);
-    fseek(f, 15, SEEK_SET);
-    
-    char FileData[1024];
-    fread_s(FileData, 1024, 1, end, f);
+    Sys_FileClose(FileHandle);
+    Sys_FileClose(WriteFile);
 
-    FILE* WriteFile;
-    fopen_s(&WriteFile, "Source.out", "wb");
+    free(Buffer);
+    Buffer = NULL;
 
-    size_t BytesWritten = fwrite(FileData, 1, end, WriteFile);
-    fclose(WriteFile);
-    fclose(f);
+    // char* ColorData = LoadFile("palette.lmp");
 
     return 0;
 }

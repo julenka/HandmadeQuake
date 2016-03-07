@@ -1,0 +1,30 @@
+
+
+// GOAL: Create a file system where we can ask for a quake file and just get it
+
+// EX: char* ColorData = LoadFile("palette.lmp");
+	-- it needs to know the directory to check
+	-- it needs to either have pak files loaded or load them at request
+	-- it needs to allocate memory and return direct bytes seamlessly
+
+// Today's Step: Wrap file functions in our Sys_ library
+	-- why?
+	
+	-- Standard online answer is that this allows us to change code at will
+		- easy to replace file loading with system specific, for instance
+	-- True, though another practical reason may be to allow you to debug easily as well
+		- unit testing, breakpoint placement
+	-- Create a system that hides the FILE* implementation
+		- This may seem unnecessary in C, but if you're writing in another language, it's potentially crucial
+
+
+// internal functions
+	int filelength (FILE *f): return the length of a file
+	int		findhandle (void): find a free handle
+
+// external functions
+	int Sys_FileOpenRead (char *path, int *hndl): open a file for reading
+	int Sys_FileOpenWrite (char *path): open a file for writing
+	void Sys_FileClose (int handle): close a file
+	void Sys_FileSeek (int handle, int position): move to a specific position in the file
+	int Sys_FileRead (int handle, void *dest, int count): read a number of bytes into the specific dest pointer
