@@ -2,6 +2,9 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdarg.h>
+//#include <string.h>
+#include <stdlib.h>
 
 typedef uint8_t uint8;
 typedef int32_t int32;
