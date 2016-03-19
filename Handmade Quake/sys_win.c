@@ -204,6 +204,9 @@ int32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     Host_Shutdown();
     
-   // _CrtDumpMemoryLeaks();
+#if _DEBUG
+    _CrtDumpMemoryLeaks();
+#endif
+
     return 0;
 }

@@ -1,12 +1,8 @@
 #include "quakedef.h"
 #include "winquake.h"
 
-static int BufferWidth = 0;
-static int BufferHeight = 0;
 static int WindowWidth = 0;
 static int WindowHeight = 0;
-static int BytesPerPixel = 4;
-void* BackBuffer = NULL;
 HWND MainWindow;
 
 typedef enum {MS_WINDOWED, MS_FULLSCREEN} modestate_t;
@@ -22,6 +18,14 @@ typedef struct
 vmode_t ModeList[40];
 int32 ModeCount = 0;
 int32 FirstFullscreenMode = -1;
+
+viddef_t Vid;
+
+static uint8 *CharData;
+static int32 CharLength;
+
+
+static uint32 ColorArray[256];
 
 BITMAPINFO BitMapInfo = { 0 };
 
@@ -162,7 +166,7 @@ void VID_SetWindowedMode(int ModeValue)
     // create our window
     MainWindow = CreateWindowEx(
         WindowExStyle, "Module 3",
-        "Lesson 3.6", WindowStyle,
+        "Lesson 4.6", WindowStyle,
         CW_USEDEFAULT, CW_USEDEFAULT,
         r.right - r.left, r.bottom - r.top,
         NULL, NULL,
@@ -217,7 +221,7 @@ void VID_SetFullscrenMode(int ModeValue)
 
 void VID_SetMode(int ModeValue)
 {
-    if (BackBuffer)
+    if (Vid.BackBuffer)
     {
         VID_Shutdown();
     }
@@ -225,8 +229,9 @@ void VID_SetMode(int ModeValue)
     WindowWidth = ModeList[ModeValue].width;
     WindowHeight = ModeList[ModeValue].height;
     
-    BufferHeight = WindowHeight;
-    BufferWidth = WindowWidth;
+    Vid.BufferHeight = 240;
+    Vid.BufferWidth = 320;
+    Vid.BytesPerPixel = 4;
 
     if (ModeList[ModeValue].type == MS_WINDOWED)
     {
@@ -240,18 +245,20 @@ void VID_SetMode(int ModeValue)
     ShowWindow(MainWindow, SW_SHOWDEFAULT);
 
     HDC DeviceContext = GetDC(MainWindow);
-    PatBlt(DeviceContext, 0, 0, BufferWidth, BufferHeight, BLACKNESS);
+    PatBlt(DeviceContext, 0, 0, Vid.BufferWidth, Vid.BufferHeight, BLACKNESS);
     ReleaseDC(MainWindow, DeviceContext);
 
     // define our bitmap info
     BitMapInfo.bmiHeader.biSize = sizeof(BitMapInfo.bmiHeader);
-    BitMapInfo.bmiHeader.biWidth = BufferWidth;
-    BitMapInfo.bmiHeader.biHeight = -BufferHeight;
+    BitMapInfo.bmiHeader.biWidth = Vid.BufferWidth;
+    BitMapInfo.bmiHeader.biHeight = -Vid.BufferHeight;
     BitMapInfo.bmiHeader.biPlanes = 1;
-    BitMapInfo.bmiHeader.biBitCount = 8 * BytesPerPixel;
+    BitMapInfo.bmiHeader.biBitCount = 8 * Vid.BytesPerPixel;
     BitMapInfo.bmiHeader.biCompression = BI_RGB;
 
-    BackBuffer = malloc(BufferWidth * BufferHeight * BytesPerPixel);
+    Vid.BackBuffer = malloc(Vid.BufferWidth * Vid.BufferHeight * Vid.BytesPerPixel);
+
+    CharData = COM_FindFile("gfx/menuplyr.lmp", &CharLength);
 }
 
 void VID_Init(void)
@@ -266,6 +273,23 @@ void VID_Init(void)
     if (!RegisterClassEx(&wc))
         exit(EXIT_FAILURE);
 
+    int32 PaletteLength = 0;
+    int8 *PaletteData = COM_FindFile("gfx/palette.lmp", &PaletteLength);
+
+    uint8 *PaletteWalker = PaletteData;
+    for (int i = 0; i < 256; i++)
+    {
+        uint8 Red = *PaletteWalker++;
+        uint8 Green = *PaletteWalker++;
+        uint8 Blue = *PaletteWalker++;
+     
+        uint32 Color = ((Red << 16) | (Green << 8) | Blue);
+        ColorArray[i] = Color;
+    }
+    free(PaletteData);
+
+    Vid.ColorPtr = ColorArray;
+
     VID_InitWindowedMode();
     VID_InitFullscreenMode();
 
@@ -274,11 +298,13 @@ void VID_Init(void)
 
 void VID_Update(void)
 {
+    DrawPic32(10, 10, 48, 56, CharData+8);
+
     HDC dc = GetDC(MainWindow);
     StretchDIBits(dc,
         0, 0, WindowWidth, WindowHeight,
-        0, 0, BufferWidth, BufferHeight,
-        BackBuffer, (BITMAPINFO*)&BitMapInfo,
+        0, 0, Vid.BufferWidth, Vid.BufferHeight,
+        (void*)Vid.BackBuffer, (BITMAPINFO*)&BitMapInfo,
         DIB_RGB_COLORS, SRCCOPY);
     ReleaseDC(MainWindow, dc);
 }
@@ -287,6 +313,7 @@ void VID_Shutdown(void)
 {
     ChangeDisplaySettings(NULL, 0);
     DestroyWindow(MainWindow);
-    free(BackBuffer);
-    BackBuffer = NULL;
+    free(Vid.BackBuffer);
+    Vid.BackBuffer = NULL;
+    free(CharData);
 }
