@@ -147,7 +147,7 @@ static pack_t *COM_LoadPackFile(char *PakFile)
     }
 
     pack_t  *NewPak = (void*)malloc(sizeof(pack_t));
-    Q_strcmp(NewPak->PackName, PakFile);
+    Q_strcpy(NewPak->PackName, PakFile);
     NewPak->PackHandle = PakHandle;
     NewPak->NumberOfFiles = NumPackFiles;
     NewPak->PakFiles = FilesInMemory;

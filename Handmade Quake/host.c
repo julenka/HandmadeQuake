@@ -23,6 +23,8 @@ void Host_Init(void)
 {
     COM_FileInit();
     VID_Init();
+    W_LoadWadFile("gfx.wad");
+    void *Mem = W_GetLumpName("NUM_0");
 }
 
 void Host_Frame(float timestep)
