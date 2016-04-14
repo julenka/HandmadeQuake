@@ -1,14 +1,67 @@
 #include <windows.h>
+#include <stdio.h>
+
+static BOOL IsRunning = TRUE;
+
+///////////////////////////////
+// TIMER CODE
+static double SecondsPerTick = 0;
+static __int64 TimeCount;
+// Number of seconds that have passed in the game so far
+static double TimePassed;
+///////////////////////////////
+float Sys_InitFloatTime(void)
+{
+    LARGE_INTEGER frequency;
+    QueryPerformanceCounter(&frequency);
+    SecondsPerTick = 1.0 / frequency.QuadPart;
+
+    LARGE_INTEGER counter;
+    QueryPerformanceCounter(&counter);
+    TimeCount = counter.QuadPart;
+    return 0;
+}
+
+float Sys_FloatTime(void) {
+    LARGE_INTEGER counter;
+    QueryPerformanceCounter(&counter);
+
+    __int64 interval = counter.QuadPart - TimeCount;
+    TimeCount = counter.QuadPart;
+    double secondsGoneBy = interval * SecondsPerTick;
+    TimePassed += secondsGoneBy;
+    return (float)TimePassed;
+}
+void Sys_Shutdown() {
+    IsRunning = FALSE;
+}
 
 LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     // TODO: catch any relevant messages here.
     // switch(uMsg);
     // Do the default behavior defined by Windows
-    return DefWindowProc(hWnd, uMsg, wParam, lParam);
+    LRESULT result = 0;
+
+    switch (uMsg)
+    {
+    case WM_KEYUP:
+        break;
+    case WM_ACTIVATE:
+        break;
+    case WM_CREATE:
+        break;
+    case WM_DESTROY:
+        Sys_Shutdown();
+        break;
+    default:
+        result = DefWindowProc(hWnd, uMsg, wParam, lParam);
+        break;
+    }
+    return result;
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) 
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
     WNDCLASS wc = { 0 };
     wc.lpfnWndProc = MainWndProc;
@@ -49,6 +102,33 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     HDC deviceContext = GetDC(mainWindow);
     PatBlt(deviceContext, 0, 0, 800, 600, BLACKNESS);
     ReleaseDC(mainWindow, deviceContext);
+
+    float timecount = Sys_InitFloatTime();
+
+    MSG msg;
+    while (IsRunning)
+    {
+        while (PeekMessage(
+            &msg,
+            NULL,
+            0,
+            0,
+            PM_REMOVE
+            ))
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+
+        float newtime = Sys_FloatTime();
+
+        char buf[64];
+        sprintf_s(buf, 64, "Total time: %3.7f\n", newtime);
+        OutputDebugString(buf);
+        // Update
+        // Draw
+
+    }
 
     return 0;
 }
