@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <stdio.h>
+#include "host.h"
 
 static BOOL IsRunning = TRUE;
 
@@ -63,6 +64,7 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
+    Host_Init();
     WNDCLASS wc = { 0 };
     wc.lpfnWndProc = MainWndProc;
     wc.hInstance = hInstance;
@@ -103,7 +105,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     PatBlt(deviceContext, 0, 0, 800, 600, BLACKNESS);
     ReleaseDC(mainWindow, deviceContext);
 
-    float timecount = Sys_InitFloatTime();
+    float oldTime = Sys_InitFloatTime();
+    float targetTime = 1.0f / 60.0f; // 60fps is target 
+    float timeAccumulated = 0;
 
     MSG msg;
     while (IsRunning)
@@ -120,16 +124,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             DispatchMessage(&msg);
         }
 
-        float newtime = Sys_FloatTime();
+        float newTime = Sys_FloatTime();
+        timeAccumulated += newTime - oldTime;
+        oldTime = newTime;
 
-        char buf[64];
-        sprintf_s(buf, 64, "Total time: %3.7f\n", newtime);
-        OutputDebugString(buf);
+        if (timeAccumulated > targetTime) 
+        {
+            Host_Frame(newTime - oldTime);
+            timeAccumulated -= targetTime;
+        }
         // Update
         // Draw
-
     }
 
+    Host_Shutdown();
     return 0;
 }
 
