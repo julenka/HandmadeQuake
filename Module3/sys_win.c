@@ -9,8 +9,46 @@
 int g_running = 1;
 void* g_backBuffer;
 
-BITMAPINFO g_bitmapInfo = { 0 };
 
+typedef struct dibinfo_x
+{
+    BITMAPINFOHEADER    header;
+    RGBQUAD             acolors[256];
+} dibinfo_t;
+
+dibinfo_t g_bitmapInfo = { 0 };
+
+
+void DrawRect(size_t x, size_t y, size_t w, size_t h, unsigned char r, unsigned char g, unsigned char b, unsigned char *buffer) {
+    size_t pixel_width = sizeof(unsigned char) * 4;
+    size_t start_index = y * BUFFER_WIDTH * pixel_width + x * pixel_width;
+    unsigned int color = (r << 16) | (g << 8) | b;
+    buffer = buffer + start_index;
+    for (size_t row = 0; row < h; row++)
+    {
+        for (size_t col = 0; col < w; col++)
+        {
+            buffer[0] = b;
+            buffer[1] = g;
+            buffer[2] = r;
+            buffer += pixel_width;
+        }
+        buffer += pixel_width * (BUFFER_WIDTH - w);
+    }
+}
+
+void DrawRect8(int x, int y, int w, int h, unsigned char color, unsigned char *buffer) {
+    size_t start_index = y * BUFFER_WIDTH + x;
+    buffer = buffer + start_index;
+    for (size_t row = 0; row < h; row++)
+    {
+        for (size_t col = 0; col < w; col++)
+        {
+            *buffer++ = color;
+        }
+        buffer += (BUFFER_WIDTH - w);
+    }
+}
 
 LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -68,7 +106,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     }
 
     // Create Window
-    RECT r;
+    RECT r = { 0 };
     r.top = r.left = 0;
     r.right = BUFFER_WIDTH;
     r.bottom = BUFFER_HEIGHT;
@@ -78,7 +116,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     mainWindow = CreateWindowEx(
         dwExStyle,
         "Module 3",
-        "Lesson 3.2",
+        "Lesson 3.3",
         dwStyle,
         CWMO_DEFAULT,
         CWMO_DEFAULT,
@@ -98,14 +136,29 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 
     // Create bitmapinfo
-    g_bitmapInfo.bmiHeader.biSize = sizeof(g_bitmapInfo.bmiHeader);
-    g_bitmapInfo.bmiHeader.biWidth = BUFFER_WIDTH;
-    g_bitmapInfo.bmiHeader.biHeight = BUFFER_HEIGHT;
-    g_bitmapInfo.bmiHeader.biPlanes = 1;
-    g_bitmapInfo.bmiHeader.biBitCount = 32;
-    g_bitmapInfo.bmiHeader.biCompression = BI_RGB;
+    g_bitmapInfo.header.biSize = sizeof(g_bitmapInfo.header);
+    g_bitmapInfo.header.biWidth = BUFFER_WIDTH;
+    g_bitmapInfo.header.biHeight = -BUFFER_HEIGHT;
+    g_bitmapInfo.header.biPlanes = 1;
+    g_bitmapInfo.header.biBitCount = 8 * BYTES_PER_PIXEL;
+    g_bitmapInfo.header.biCompression = BI_RGB;
 
     g_backBuffer = malloc(BUFFER_WIDTH * BUFFER_HEIGHT * BYTES_PER_PIXEL);
+
+
+    if (BYTES_PER_PIXEL == 1) {
+        g_bitmapInfo.acolors[0].rgbRed = 0;
+        g_bitmapInfo.acolors[0].rgbGreen = 0;
+        g_bitmapInfo.acolors[0].rgbBlue = 0;
+
+        for (size_t i = 0; i < 256; i++)
+        {
+            g_bitmapInfo.acolors[i].rgbRed = rand() % 256;
+            g_bitmapInfo.acolors[i].rgbGreen = rand() % 256;
+            g_bitmapInfo.acolors[i].rgbBlue = rand() % 256;
+
+        }
+    }
 
 
     // Game loop
@@ -124,13 +177,30 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             DispatchMessage(&msg);
 
             // set to solid color
-            int* idx = g_backBuffer;
-            for (size_t i = 0; i < BUFFER_WIDTH * BUFFER_HEIGHT; i++)
-            {
-                char r = rand() % 256;
-                char g = rand() % 256;
-                char b = rand() % 256;
-                *idx++ = (r << 16 | g << 8 | b);
+            if (BYTES_PER_PIXEL == 4) {
+                int* idx = g_backBuffer;
+                for (size_t i = 0; i < BUFFER_WIDTH * BUFFER_HEIGHT; i++)
+                {
+                    // unsigned char r = (rand() & 0x0000ff00) >> 8;
+                    // unsigned char g = (rand() & 0x0000ff00) >> 8;
+                    // unsigned char b = (rand() & 0x0000ff00) >> 8;
+
+                    unsigned char r = rand() % 256;
+                    unsigned char g = rand() % 256;
+                    unsigned char b = rand() % 256;
+
+                    *idx++ = (r << 16 | g << 8 | b);
+                }
+                DrawRect(10, 10, 300, 200, 255, 0, 0, g_backBuffer);
+
+            }
+            else {
+                unsigned char* idx = g_backBuffer;
+                for (size_t i = 0; i < BUFFER_WIDTH * BUFFER_HEIGHT; i++)
+                {
+                    *idx++ = 1;
+                }
+                DrawRect8(10, 10, 300, 200, 2, g_backBuffer);
             }
 
             HDC dc = GetDC(mainWindow);
