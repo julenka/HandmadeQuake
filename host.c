@@ -19,7 +19,7 @@ qboolean Host_FilterTime(float time)
 
 void Host_Init(void) 
 {
-
+    VID_Init();
 }
 
 void Host_Frame(float timestep) 
