@@ -19,7 +19,7 @@ qboolean Host_FilterTime(float time)
 
 void Host_Init(void) 
 {
-    VID_Init();
+    Vid_Init();
 }
 
 void Host_Frame(float timestep) 
@@ -29,9 +29,11 @@ void Host_Frame(float timestep)
         return;
     }
     Sys_SendKeyEvents();
+    Vid_Update();
 }
 
 void Host_Shutdown(void)
 {
+    Vid_Shutdown();
     Sys_Shutdown();
 }

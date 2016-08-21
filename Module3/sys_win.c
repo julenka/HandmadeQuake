@@ -4,8 +4,8 @@
 
 #define BUFFER_WIDTH 320
 #define BUFFER_HEIGHT 240
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
+#define INITIAL_WINDOW_WIDTH 800
+#define INITIAL_WINDOW_HEIGHT 600
 #define BYTES_PER_PIXEL 1
 
 #define FULL_SCREEN 0 
@@ -142,8 +142,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     // Create Window
     RECT r = { 0 };
     r.top = r.left = 0;
-    r.right = WINDOW_WIDTH;
-    r.bottom = WINDOW_HEIGHT;
+    r.right = INITIAL_WINDOW_WIDTH;
+    r.bottom = INITIAL_WINDOW_HEIGHT;
 
     AdjustWindowRect(&r, dwStyle, FALSE);
 
@@ -256,7 +256,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             HDC dc = GetDC(mainWindow);
             StretchDIBits(
                 dc,
-                0, 0, WINDOW_WIDTH, WINDOW_HEIGHT,
+                0, 0, INITIAL_WINDOW_WIDTH, INITIAL_WINDOW_HEIGHT,
                 0, 0, BUFFER_WIDTH, BUFFER_HEIGHT,
                 g_backBuffer,
                 &g_bitmapInfo,
