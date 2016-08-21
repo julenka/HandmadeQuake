@@ -157,6 +157,7 @@
     <ClInclude Include="..\Module2\host.h" />
     <ClInclude Include="..\quakedef.h" />
     <ClInclude Include="..\q_stl.h" />
+    <ClInclude Include="..\sys.h" />
     <ClInclude Include="..\vid.h" />
     <ClInclude Include="..\winquake.h" />
   </ItemGroup>

@@ -28,9 +28,10 @@ void Host_Frame(float timestep)
     {
         return;
     }
+    Sys_SendKeyEvents();
 }
 
 void Host_Shutdown(void)
 {
-
+    Sys_Shutdown();
 }

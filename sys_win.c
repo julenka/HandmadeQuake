@@ -16,7 +16,7 @@ static double TimePassed;
 float Sys_InitFloatTime(void)
 {
     LARGE_INTEGER frequency;
-    QueryPerformanceCounter(&frequency);
+    QueryPerformanceFrequency(&frequency);
     SecondsPerTick = 1.0 / frequency.QuadPart;
 
     LARGE_INTEGER counter;
@@ -39,6 +39,21 @@ void Sys_Shutdown() {
     IsRunning = FALSE;
 }
 
+void Sys_SendKeyEvents(void) {
+    MSG msg;
+    while (PeekMessage(
+        &msg,
+        NULL,
+        0,
+        0,
+        PM_REMOVE
+    ))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+}
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
@@ -48,33 +63,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     Host_Init();
 
     float oldTime = Sys_InitFloatTime();
-    float targetTime = 1.0f / 60.0f; // 60fps is target 
-    float timeAccumulated = 0;
 
-    MSG msg;
     while (IsRunning)
     {
-        while (PeekMessage(
-            &msg,
-            NULL,
-            0,
-            0,
-            PM_REMOVE
-            ))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-
         float newTime = Sys_FloatTime();
-        timeAccumulated += newTime - oldTime;
+        Host_Frame(newTime - oldTime);
         oldTime = newTime;
-
-        if (timeAccumulated > targetTime)
-        {
-            Host_Frame(newTime - oldTime);
-            timeAccumulated -= targetTime;
-        }
         // Update
         // Draw
     }

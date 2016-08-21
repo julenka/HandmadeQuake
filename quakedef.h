@@ -9,3 +9,4 @@ typedef uint32_t uint32;
 #include "common.h"
 #include "q_stl.h"
 #include "vid.h"
+#include "sys.h"

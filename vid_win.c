@@ -10,12 +10,12 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     switch (uMsg)
     {
-    case WM_KEYUP:
-        break;
+
     case WM_ACTIVATE:
         break;
     case WM_CREATE:
         break;
+    case WM_KEYUP:
     case WM_DESTROY:
         Sys_Shutdown();
         break;
